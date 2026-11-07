@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "schematicvault",
+  "version": "${version}",
+  "name": "Schematic Vault",
+  "description": "Browse thousands of community schematics (farms, storage, builds) right in game, and download any of them straight into your schematics folder, ready for Litematica.",
+  "authors": [
+    "Jahel Cuadrado"
+  ],
+  "contact": {
+    "homepage": "https://github.com/JahelCuadrado/schematic-vault",
+    "sources": "https://github.com/JahelCuadrado/schematic-vault",
+    "issues": "https://github.com/JahelCuadrado/schematic-vault/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/schematicvault/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "com.einsteinmods.schematicvault.client.SchematicVaultClient"
+    ],
+    "modmenu": [
+      "com.einsteinmods.schematicvault.client.config.ModMenuIntegration"
+    ]
+  },
+  "mixins": [
+    {
+      "config": "schematicvault.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  },
+  "recommends": {
+    "modmenu": "*"
+  },
+  "suggests": {
+    "litematica": ">=0.29.1"
+  }
+}

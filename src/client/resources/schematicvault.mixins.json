@@ -1,0 +1,17 @@
+{
+  "required": false,
+  "package": "com.einsteinmods.schematicvault.client.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "LitematicaMainMenuMixin",
+    "LitematicaSchematicBrowserMixin",
+    "LitematicaSchematicLoadMixin",
+    "LitematicaSchematicRowMixin",
+    "MalilibDirectoryEntryMixin",
+    "MalilibListAccess",
+    "MalilibScreenAccess"
+  ],
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

@@ -1,0 +1,118 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'com.diffplug.spotless' version "${spotless_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	// Litematica and MaLiLib: compile-time only; Mod Menu: compile-time and dev run (see dependencies).
+	maven {
+		name = 'Modrinth'
+		url = 'https://api.modrinth.com/maven'
+		content { includeGroup 'maven.modrinth' }
+	}
+	maven {
+		name = 'TerraformersMC'
+		url = 'https://maven.terraformersmc.com/releases'
+		content { includeGroup 'com.terraformersmc' }
+	}
+}
+
+// Client-only mod: pure-Java core and the config file in main, everything with Minecraft client
+// types in the client source set.
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"schematicvault" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Optional at runtime ("suggests" in fabric.mod.json): only client/litematica/LitematicaIntegration
+	// uses them, and only once FabricLoader reports Litematica loaded. Pinned to the versions it was
+	// written against; the dev run and tests never load them.
+	clientCompileOnly "maven.modrinth:litematica:${project.litematica_version}"
+	clientCompileOnly "maven.modrinth:malilib:${project.malilib_version}"
+
+	// Optional at runtime ("recommends" in fabric.mod.json): "Configure" button in the mod list.
+	clientCompileOnly "com.terraformersmc:modmenu:${project.modmenu_version}"
+	localRuntime "com.terraformersmc:modmenu:${project.modmenu_version}"
+
+	testImplementation platform("org.junit:junit-bom:${project.junit_version}")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+processResources {
+	def version = project.version
+	inputs.property "version", version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": version
+	}
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(25)
+	}
+	withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.release = 25
+	options.encoding = "UTF-8"
+	// Line numbers stay for crash reports; local variable tables only serve debuggers.
+	options.debugOptions.debugLevel = "source,lines"
+	options.compilerArgs.addAll(["-Xlint:all,-processing,-classfile,-serial", "-Werror"])
+}
+
+test {
+	useJUnitPlatform()
+	// The dev-only real-file checks read designs of up to 32 M cells.
+	maxHeapSize = "2g"
+	// ./gradlew test -Dschematicvault.allFiles=true checks every local design file, not a sample.
+	systemProperty "schematicvault.allFiles", providers.systemProperty("schematicvault.allFiles").getOrElse("false")
+	// ./gradlew test -Dschematicvault.editorTiming=true --tests '*EditorTimingTest' times the block
+	// editor on real designs (dev only: in the same JVM as the other real-file tests it needs more heap).
+	systemProperty "schematicvault.editorTiming", providers.systemProperty("schematicvault.editorTiming").getOrElse("false")
+	// Real-data tests read a local API build's core public/ folder from -Dschematicvault.apiFolder
+	// (or systemProp.schematicvault.apiFolder in ~/.gradle/gradle.properties) or the
+	// SCHEMATIC_VAULT_API_DIR environment variable; without either they skip themselves.
+	systemProperty "schematicvault.apiFolder", providers.systemProperty("schematicvault.apiFolder")
+		.orElse(providers.environmentVariable("SCHEMATIC_VAULT_API_DIR")).getOrElse("")
+}
+
+jar {
+	def projectName = project.name
+	inputs.property "projectName", projectName
+
+	from("LICENSE") {
+		rename { "${it}_$projectName" }
+	}
+}
+
+spotless {
+	java {
+		target "src/*/java/**/*.java"
+		// 1.36.1: newest version compatible with Spotless 8.10.4 (1.37.0 fails with NoSuchMethodError).
+		googleJavaFormat("1.36.1")
+		removeUnusedImports()
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+}
