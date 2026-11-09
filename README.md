@@ -8,6 +8,10 @@ a category such as Farms › Mob farms › Iron, look at the size and block coun
 
 Fabric mod for Minecraft 26.3. Client only: works on any server.
 
+[![Schematic Vault demo: browse, search, preview in 3D and place with Litematica](docs/media/demo-poster.jpg)](docs/media/demo.mp4)
+
+▶ [Watch the full demo video (1:45)](docs/media/demo.mp4)
+
 ## Features
 - **Open it with a key:** bind "Open Schematic Vault" in Controls (no key by default).
 - **The whole catalog, instantly:** the catalog is kept on your computer, so the vault opens
